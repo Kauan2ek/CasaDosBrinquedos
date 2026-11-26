@@ -15,6 +15,15 @@ const TAMANHO_FIGURINHA = 512;
 // Qualidades testadas em ordem até caber no limite do WhatsApp
 const QUALIDADES = [80, 60, 45, 30, 15];
 
+const EXTENSOES_ANIMADAS = ['.gif', '.mp4', '.mov', '.webm', '.m4v', '.avi', '.mkv'];
+
+// Animada = GIF ou vídeo. Confere o tipo MIME e também a extensão, porque o
+// navegador (ou um cliente HTTP) às vezes manda o tipo genérico application/octet-stream.
+function ehAnimada(mimetype = '', nomeArquivo = '') {
+  const ext = require('node:path').extname(nomeArquivo).toLowerCase();
+  return mimetype === 'image/gif' || mimetype.startsWith('video/') || EXTENSOES_ANIMADAS.includes(ext);
+}
+
 function executarFfmpeg(args) {
   return new Promise((resolve, reject) => {
     const processo = spawn('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', ...args]);
@@ -151,4 +160,4 @@ function duracaoDoArquivo(buffer, extensao) {
   })();
 }
 
-module.exports = { criarFigurinha, converterAudio, duracaoDoArquivo, DURACAO_MAX_FIGURINHA };
+module.exports = { criarFigurinha, converterAudio, duracaoDoArquivo, ehAnimada, DURACAO_MAX_FIGURINHA };

@@ -2,13 +2,14 @@
   "name": "figurinhas-bot",
   "version": "1.0.0",
   "description": "Cria figurinhas (imagem/vídeo) com áudio e envia para um contato no WhatsApp",
-  "main": "src/server.js",
+  "main": "src/loja.js",
   "type": "commonjs",
   "scripts": {
-    "start": "node src/server.js"
+    "start": "node src/server.js",
+    "loja": "node src/loja.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22.5"
   },
   "license": "UNLICENSED",
   "private": true,

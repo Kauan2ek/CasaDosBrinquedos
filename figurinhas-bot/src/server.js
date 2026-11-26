@@ -2,7 +2,7 @@
 const path = require('node:path');
 const express = require('express');
 const multer = require('multer');
-const { criarFigurinha, converterAudio } = require('./conversor');
+const { criarFigurinha, converterAudio, ehAnimada } = require('./conversor');
 const { conectar, localizarDestino, enviarFigurinhaComAudio, status } = require('./whatsapp');
 
 const PORTA = Number(process.env.PORT) || 3000;
@@ -63,7 +63,7 @@ app.post(
       // Só checa o destino antes de gastar tempo convertendo
       const jid = await localizarDestino(req.body.numero);
 
-      const animada = midia.mimetype === 'image/gif' || midia.mimetype.startsWith('video/');
+      const animada = ehAnimada(midia.mimetype, midia.originalname);
       const figurinha = await criarFigurinha({
         buffer: midia.buffer,
         extensao: extensaoDe(midia),
