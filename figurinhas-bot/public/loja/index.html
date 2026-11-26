@@ -3,83 +3,236 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Loja de Figurinhas</title>
+  <title>Figurinhas com Som</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --fundo: #f6f3ff; --card: #ffffff; --texto: #1f1b2e; --suave: #6b6480;
-      --destaque: #7c4dff; --destaque-escuro: #5e2fe0; --ok: #1b9e5a; --erro: #c62828; --borda: #e4dff3;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root:not([data-theme="light"]) {
-        --fundo: #14111f; --card: #1e1a2d; --texto: #f2effa; --suave: #a59fbb;
-        --destaque: #a88bff; --destaque-escuro: #8f6cf5; --ok: #46d28a; --erro: #ff7b7b; --borda: #302a45;
-      }
-    }
-    :root[data-theme="dark"] {
-      --fundo: #14111f; --card: #1e1a2d; --texto: #f2effa; --suave: #a59fbb;
-      --destaque: #a88bff; --destaque-escuro: #8f6cf5; --ok: #46d28a; --erro: #ff7b7b; --borda: #302a45;
+      --sol: #FFD23F;
+      --tinta: #1B1A2F;
+      --papel: #FFFFFF;
+      --tomate: #FF4D2E;
+      --menta: #2EC4A6;
+      --rosa: #FF8FB1;
+      --cinza: #5C5874;
+      --sombra: 6px 6px 0 var(--tinta);
+      --sombra-grande: 10px 10px 0 var(--tinta);
     }
     * { box-sizing: border-box; }
-    body { margin: 0; background: var(--fundo); color: var(--texto); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.45; }
-    main { max-width: 860px; margin: 0 auto; padding: 24px 16px 56px; }
-    h1 { font-size: 1.5rem; margin: 0; }
-    h2 { font-size: 1.05rem; margin: 0 0 12px; }
-    .topo { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
-    .sub { color: var(--suave); margin: 4px 0 0; font-size: 0.95rem; }
-    .card { background: var(--card); border: 1px solid var(--borda); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
-    label { display: block; font-size: 0.88rem; color: var(--suave); margin: 12px 0 6px; }
-    textarea { width: 100%; padding: 10px 12px; border-radius: 10px; font: inherit; border: 1px solid var(--borda); background: var(--fundo); color: var(--texto); }
-    input, select { width: 100%; padding: 10px 12px; border-radius: 10px; font-size: 1rem; border: 1px solid var(--borda); background: var(--fundo); color: var(--texto); }
-    input[type="file"] { padding: 8px; }
-    .linha { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; min-height: 100vh; background-color: var(--sol); color: var(--tinta);
+      font-family: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
+      font-size: 1rem; line-height: 1.5;
+      background-image: radial-gradient(rgba(27, 26, 47, 0.12) 1.2px, transparent 1.4px);
+      background-size: 22px 22px;
+    }
+    :focus-visible { outline: 3px solid var(--tomate); outline-offset: 3px; border-radius: 6px; }
+
+    /* ---------- Marca ---------- */
+    .marca {
+      display: flex; align-items: center; gap: 10px; padding: 18px 16px 0;
+      max-width: 1040px; margin: 0 auto; font-family: "Bagel Fat One", sans-serif; font-size: 1.25rem;
+    }
+    .marca-selo {
+      width: 38px; height: 38px; border-radius: 50%; background: var(--tomate);
+      border: 3px solid var(--tinta); box-shadow: 3px 3px 0 var(--tinta); position: relative;
+    }
+    .marca-selo::after {
+      content: ""; position: absolute; inset: 7px; border-radius: 50%; border: 3px dashed #fff;
+    }
+
+    main { max-width: 1040px; margin: 0 auto; padding: 22px 16px 72px; }
+    h1, h2 { font-family: "Bagel Fat One", sans-serif; font-weight: 400; line-height: 1.05; margin: 0; letter-spacing: 0.01em; }
+    h1 { font-size: clamp(2.2rem, 6vw, 3.6rem); }
+    h2 { font-size: 1.5rem; margin-bottom: 14px; }
+    .sub { color: var(--cinza); margin: 6px 0 0; font-size: 1.02rem; max-width: 56ch; }
+    .dica { font-size: 0.9rem; color: var(--cinza); margin: 8px 0 0; }
+
+    /* ---------- Cartões: borda de figurinha ---------- */
+    .card {
+      background: var(--papel); border: 3px solid var(--tinta); border-radius: 22px;
+      box-shadow: var(--sombra-grande); padding: 22px; margin-bottom: 26px;
+    }
+
+    /* ---------- Login (primeira dobra) ---------- */
+    .hero { display: grid; gap: 28px; align-items: center; margin: 14px 0 30px; }
+    .hero .sub { margin-top: 20px; }
+    @media (min-width: 820px) { .hero { grid-template-columns: 1.1fr 0.9fr; } }
+    .hero h1 span { display: inline-block; background: var(--tomate); color: #fff; padding: 0 12px; border: 3px solid var(--tinta); border-radius: 14px; transform: rotate(-2deg); box-shadow: 4px 4px 0 var(--tinta); }
+    .vitrine { position: relative; height: 240px; }
+    .figura-demo {
+      position: absolute; width: 150px; height: 150px; background: #fff; padding: 12px;
+      border: 3px solid var(--tinta); border-radius: 22px; box-shadow: 6px 6px 0 var(--tinta);
+      display: grid; place-items: center; font-family: "Bagel Fat One", sans-serif; font-size: 1.35rem; text-align: center;
+      transition: transform 0.25s ease;
+    }
+    .figura-demo:nth-child(1) { left: 2%; top: 14px; transform: rotate(-8deg); background: var(--menta); color: var(--tinta); }
+    .figura-demo:nth-child(2) { left: 38%; top: 0; transform: rotate(5deg); background: var(--rosa); color: var(--tinta); }
+    .figura-demo:nth-child(3) { left: 16%; top: 96px; transform: rotate(-3deg); background: #fff; color: var(--tomate); }
+    .figura-demo:hover { transform: rotate(0deg) scale(1.05); }
+
+    .login { max-width: 440px; margin: 0 0 40px; }
+    .login h2 { margin-bottom: 4px; }
+
+    /* ---------- Formulários ---------- */
+    label { display: block; font-weight: 800; font-size: 0.92rem; margin: 16px 0 6px; }
+    input, select, textarea {
+      width: 100%; padding: 12px 14px; border-radius: 14px; font: inherit; font-size: 1rem;
+      border: 3px solid var(--tinta); background: #fff; color: var(--tinta);
+    }
+    input[type="file"] { padding: 10px; font-size: 0.92rem; background: #FFF9E8; cursor: pointer; }
+    input[type="file"]::file-selector-button {
+      font: inherit; font-weight: 800; border: 2px solid var(--tinta); border-radius: 10px;
+      background: var(--sol); color: var(--tinta); padding: 6px 12px; margin-right: 10px; cursor: pointer;
+    }
+    textarea { resize: vertical; }
+    .linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 560px) { .linha { grid-template-columns: 1fr; } }
-    button { padding: 11px 16px; border: 0; border-radius: 10px; background: var(--destaque); color: #fff; font-weight: 700; cursor: pointer; font-size: 0.95rem; }
-    button:hover { background: var(--destaque-escuro); }
-    button:disabled { opacity: 0.55; cursor: wait; }
-    button.secundario { background: transparent; color: var(--destaque); border: 1px solid var(--borda); }
-    button.pequeno { padding: 6px 10px; font-size: 0.85rem; }
-    .bloco { width: 100%; margin-top: 12px; }
-    table { width: 100%; border-collapse: collapse; font-size: 0.92rem; }
-    th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--borda); vertical-align: middle; }
-    th { color: var(--suave); font-weight: 600; font-size: 0.82rem; }
-    .tag { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 0.78rem; background: var(--fundo); border: 1px solid var(--borda); color: var(--suave); }
-    .tag.sem { color: var(--erro); }
-    .mensagem { font-weight: 600; margin-top: 10px; min-height: 1.2em; }
-    .mensagem.ok { color: var(--ok); } .mensagem.erro { color: var(--erro); }
-    .login { max-width: 380px; margin: 40px auto; }
-    .historico { font-size: 0.85rem; color: var(--suave); margin-top: 8px; }
-    .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
-    .item { border: 1px solid var(--borda); border-radius: 12px; padding: 12px; text-align: center; }
-    .item img { width: 120px; height: 120px; object-fit: contain; background: repeating-conic-gradient(#8881 0 25%, transparent 0 50%) 50% / 16px 16px; border-radius: 8px; }
-    .item p { margin: 8px 0; font-weight: 600; font-size: 0.92rem; }
-    a.botao { display: inline-block; padding: 8px 12px; border-radius: 10px; background: var(--destaque); color: #fff; text-decoration: none; font-size: 0.85rem; font-weight: 600; margin: 2px; }
+
+    /* ---------- Botões: adesivos ---------- */
+    button, a.botao {
+      font: inherit; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+      padding: 13px 20px; border: 3px solid var(--tinta); border-radius: 999px; background: var(--tomate); color: #fff;
+      box-shadow: 4px 4px 0 var(--tinta); text-decoration: none; font-size: 1rem; line-height: 1.1;
+      transition: transform 0.12s ease, box-shadow 0.12s ease;
+    }
+    button:hover, a.botao:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--tinta); }
+    button:active, a.botao:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--tinta); }
+    button:disabled { opacity: 0.55; cursor: wait; transform: none; box-shadow: 4px 4px 0 var(--tinta); }
+    button.bloco { width: 100%; margin-top: 18px; font-size: 1.08rem; padding: 15px 20px; }
+    button.secundario, a.botao.secundario { background: #fff; color: var(--tinta); }
+    button.pequeno { padding: 7px 14px; font-size: 0.88rem; box-shadow: 3px 3px 0 var(--tinta); }
+
+    /* ---------- Mensagens ---------- */
+    .mensagem { font-weight: 800; margin-top: 12px; min-height: 1.2em; }
+    .mensagem.ok { color: #0E7C66; } .mensagem.erro { color: #C2321A; }
+    .historico { font-size: 0.92rem; color: var(--cinza); margin-top: 12px; }
+    .tag {
+      display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 800;
+      background: var(--sol); border: 2px solid var(--tinta); color: var(--tinta); margin: 2px 0;
+    }
+    .tag.sem { background: var(--rosa); }
+
+    /* ---------- Topo das telas ---------- */
+    .topo { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 6px 0 24px; flex-wrap: wrap; }
+    .topo .contagem {
+      display: inline-block; margin-top: 12px; background: var(--menta); border: 3px solid var(--tinta);
+      border-radius: 14px; padding: 4px 14px; font-weight: 800; box-shadow: 4px 4px 0 var(--tinta); transform: rotate(-1.5deg);
+    }
+
+    /* ---------- Álbum: grade de figurinhas ---------- */
+    .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; }
+    .item {
+      background: #fff; border: 3px solid var(--tinta); border-radius: 18px; padding: 12px; text-align: center;
+      box-shadow: var(--sombra); transform: rotate(var(--giro, 0deg));
+      transition: transform 0.2s ease;
+    }
+    .item:nth-child(3n+1) { --giro: -2deg; }
+    .item:nth-child(3n+2) { --giro: 1.5deg; }
+    .item:nth-child(3n) { --giro: -1deg; }
+    .item:hover { transform: rotate(0deg) translateY(-4px); }
+    .item .imagem {
+      width: 100%; aspect-ratio: 1; border-radius: 12px; border: 2px dashed rgba(27,26,47,0.35);
+      background: repeating-conic-gradient(#EEE9D8 0 25%, #fff 0 50%) 50% / 20px 20px;
+      display: grid; place-items: center; overflow: hidden;
+    }
+    .item .imagem img { width: 88%; height: 88%; object-fit: contain; }
+    .item p { margin: 10px 0 8px; font-family: "Bagel Fat One", sans-serif; font-weight: 400; font-size: 1.1rem; line-height: 1.15; }
+    .item .acoes { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
+    .item .acoes a.botao { font-size: 0.84rem; padding: 7px 12px; box-shadow: 3px 3px 0 var(--tinta); }
+
+    /* Álbum vazio */
+    .vazio { text-align: center; padding: 28px 12px; }
+    .vazio p { font-size: 1.1rem; font-weight: 800; }
+
+    /* ---------- Pedidos ---------- */
+    .lista-pedidos { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
+    .lista-pedidos li {
+      background: #FFF9E8; border: 3px solid var(--tinta); border-radius: 16px; padding: 14px 16px;
+      box-shadow: 4px 4px 0 var(--tinta);
+    }
+    .lista-pedidos li strong { font-family: "Bagel Fat One", sans-serif; font-weight: 400; font-size: 1.1rem; }
+    .lista-pedidos .arquivos { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
+    .lista-pedidos .arquivos a.botao { font-size: 0.82rem; padding: 6px 12px; box-shadow: 3px 3px 0 var(--tinta); }
+
+    /* Pagamento: etiqueta de preço */
+    #pagamento {
+      background: var(--menta) !important; transform: rotate(-1deg);
+      box-shadow: 8px 8px 0 var(--tinta) !important;
+    }
+    #pagamento h2 { margin-bottom: 8px; }
+    #pagamento p { font-size: 1.08rem; font-weight: 600; margin: 6px 0; }
+    #pagamento strong { font-weight: 800; }
+
+    /* Tabelas do painel */
+    table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.94rem; }
+    th, td { text-align: left; padding: 12px 10px; border-bottom: 2px dashed rgba(27,26,47,0.3); vertical-align: middle; }
+    th { font-weight: 800; color: var(--cinza); font-size: 0.82rem; }
+
     .oculto { display: none !important; }
+
+    /* ---------- Entrada do álbum: uma única sequência ---------- */
+    @keyframes colar {
+      from { opacity: 0; transform: translateY(18px) rotate(calc(var(--giro, 0deg) - 8deg)) scale(0.9); }
+      to { opacity: 1; transform: translateY(0) rotate(var(--giro, 0deg)) scale(1); }
+    }
+    #telaCliente:not(.oculto) .item { animation: colar 0.5s cubic-bezier(.2,.9,.3,1.2) backwards; }
+    #telaCliente:not(.oculto) .item:nth-child(2) { animation-delay: 0.06s; }
+    #telaCliente:not(.oculto) .item:nth-child(3) { animation-delay: 0.12s; }
+    #telaCliente:not(.oculto) .item:nth-child(4) { animation-delay: 0.18s; }
+    #telaCliente:not(.oculto) .item:nth-child(5) { animation-delay: 0.24s; }
+    #telaCliente:not(.oculto) .item:nth-child(n+6) { animation-delay: 0.3s; }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation: none !important; transition: none !important; }
+    }
   </style>
 </head>
 <body>
+<header class="marca"><span class="marca-selo" aria-hidden="true"></span>Figurinhas com Som</header>
 <main>
   <!-- LOGIN -->
-  <section id="telaLogin" class="card login oculto">
-    <h1>Entrar</h1>
-    <p class="sub">Acesso para clientes e administrador.</p>
+  <section id="telaLogin" class="oculto">
+    <div class="hero">
+      <div>
+        <h1>Sua figurinha, <span>do seu jeito.</span></h1>
+        <p class="sub">Escreva o nome, mande a foto ou o vídeo com o som que você quer, e a gente monta a figurinha pra você colar no WhatsApp.</p>
+      </div>
+      <div class="vitrine" aria-hidden="true">
+        <div class="figura-demo">bom dia!</div>
+        <div class="figura-demo">kkkkk</div>
+        <div class="figura-demo">te amo</div>
+      </div>
+    </div>
+    <div class="card login">
+      <h2>Entrar</h2>
+      <p class="sub">Use o e-mail e a senha que a loja te enviou.</p>
     <form id="formLogin">
       <label for="email">E-mail</label>
       <input id="email" type="email" required autocomplete="username" />
       <label for="senha">Senha</label>
       <input id="senha" type="password" required autocomplete="current-password" />
-      <button class="bloco" type="submit">Entrar</button>
+      <button class="bloco" type="submit">Entrar no álbum</button>
       <div id="msgLogin" class="mensagem erro"></div>
     </form>
+    </div>
   </section>
 
   <!-- CLIENTE -->
   <section id="telaCliente" class="oculto">
     <div class="topo">
-      <div><h1>Minhas figurinhas</h1><p class="sub" id="saudacao"></p></div>
+      <div><h1>Meu álbum</h1><p class="sub" id="saudacao"></p><span class="contagem" id="contagem"></span></div>
       <button class="secundario pequeno" data-sair>Sair</button>
     </div>
     <div class="card">
-      <h2>Fazer um pedido</h2>
+      <h2>Figurinhas coladas</h2>
+      <div id="listaCliente" class="grade"></div>
+      <div id="semFigurinhas" class="vazio oculto"><p>Seu álbum ainda está vazio.</p><p class="sub">Faça um pedido aqui em cima e a primeira figurinha começa a colar.</p></div>
+    </div>
+    <div class="card">
+      <h2>Encomendar figurinha</h2>
       <form id="formPedido">
         <label for="nomeFigurinha">Nome que vai aparecer na figurinha</label>
         <input id="nomeFigurinha" name="nomeFigurinha" required maxlength="30" placeholder="Ex.: Fê, Vovó Lu, Bom dia!" />
@@ -95,15 +248,10 @@
         <div id="pagamento" class="card oculto" style="margin-top:12px"></div>
         <p class="dica">Ao enviar, o pedido é registrado e o WhatsApp da loja abre com a mensagem pronta. Os arquivos ficam guardados no seu pedido.</p>
       </form>
-      <h2 style="margin-top:20px">Meus pedidos</h2>
-      <ul id="listaMeusPedidos" class="historico"></ul>
+      <h2 style="margin-top:28px">Meus pedidos</h2>
+      <ul id="listaMeusPedidos" class="lista-pedidos"></ul>
     </div>
 
-    <div class="card">
-      <h2>Minhas figurinhas</h2>
-      <div id="listaCliente" class="grade"></div>
-      <p id="semFigurinhas" class="sub oculto">Você ainda não tem figurinhas.</p>
-    </div>
   </section>
 
   <!-- ADMIN -->
@@ -197,12 +345,15 @@
     carregarMeusPedidos().catch(() => {});
     const lista = await api('/api/minhas-figurinhas');
     $('semFigurinhas').classList.toggle('oculto', lista.length > 0);
+    $('contagem').textContent = lista.length === 1 ? '1 figurinha' : `${lista.length} figurinhas`;
     $('listaCliente').innerHTML = lista.map((f) => `
       <div class="item">
-        <img src="/api/figurinhas/${f.id}/arquivo/figurinha" alt="" />
+        <div class="imagem"><img src="/api/figurinhas/${f.id}/arquivo/figurinha" alt="Figurinha ${esc(f.titulo)}" /></div>
         <p>${esc(f.titulo)}</p>
-        <a class="botao" href="/api/figurinhas/${f.id}/arquivo/figurinha" download>Baixar figurinha</a>
-        ${f.tem_audio ? `<a class="botao" href="/api/figurinhas/${f.id}/arquivo/audio" download>Baixar áudio</a>` : ''}
+        <div class="acoes">
+          <a class="botao" href="/api/figurinhas/${f.id}/arquivo/figurinha" download>Baixar</a>
+          ${f.tem_audio ? `<a class="botao secundario" href="/api/figurinhas/${f.id}/arquivo/audio" download>Áudio</a>` : ''}
+        </div>
       </div>`).join('');
   }
 
