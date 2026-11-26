@@ -88,6 +88,7 @@ Variáveis opcionais da loja:
 |---|---|---|
 | `PRECO_FIGURINHA_CENTAVOS` | `100` | Preço por figurinha (100 = R$ 1,00) |
 | `PIX_CHAVE` | `nandaacruche@gmail.com` | Chave Pix mostrada ao cliente |
+| `LOJA_NOME` | `Loja de Figurinhas` | Nome que aparece para quem salva a figurinha ("publicado por") |
 | `EMAIL_PEDIDOS` | — | E-mail que recebe cada pedido, com os arquivos anexados |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | — | Servidor de envio. No Gmail: `smtp.gmail.com`, porta `465`, e uma **senha de app** (não a senha normal) |
 

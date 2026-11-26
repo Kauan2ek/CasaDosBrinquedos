@@ -9,6 +9,7 @@ const multer = require('multer');
 const { db, PASTA_ARQUIVOS } = require('./db');
 const auth = require('./auth');
 const { criarFigurinha, converterAudio, ehAnimada } = require('../conversor');
+const { comMetadados } = require('../metadados');
 
 const EXTENSOES = {
   'image/jpeg': '.jpg', 'image/png': '.png', 'image/webp': '.webp', 'image/gif': '.gif',
@@ -20,6 +21,8 @@ const EXTENSOES = {
 // Preço e chave Pix (configuráveis por variável de ambiente)
 const PRECO_CENTAVOS = Number(process.env.PRECO_FIGURINHA_CENTAVOS) || 100;
 const PIX_CHAVE = process.env.PIX_CHAVE || 'nandaacruche@gmail.com';
+// Nome que aparece quando a pessoa salva a figurinha ("publicado por" no WhatsApp)
+const NOME_LOJA = process.env.LOJA_NOME || 'Loja de Figurinhas';
 const reais = (centavos) => `R$ ${(centavos / 100).toFixed(2).replace('.', ',')}`;
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 30 * 1024 * 1024 } });
@@ -145,7 +148,8 @@ function criarApp() {
           texto: String(req.body.textoFigurinha || '').trim() || undefined,
         });
         const arquivoFigurinha = `${crypto.randomUUID()}.webp`;
-        await fs.writeFile(path.join(PASTA_ARQUIVOS, arquivoFigurinha), figurinha);
+        const comOrigem = comMetadados(figurinha, { nomePacote: titulo, autor: NOME_LOJA });
+        await fs.writeFile(path.join(PASTA_ARQUIVOS, arquivoFigurinha), comOrigem);
 
         let arquivoAudio = null;
         if (audio) {
