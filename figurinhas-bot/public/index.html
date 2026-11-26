@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Figurinhas com Som</title>
+  <style>
+    :root {
+      --fundo: #f6f3ff;
+      --card: #ffffff;
+      --texto: #1f1b2e;
+      --suave: #6b6480;
+      --destaque: #7c4dff;
+      --destaque-escuro: #5e2fe0;
+      --ok: #1b9e5a;
+      --erro: #c62828;
+      --borda: #e4dff3;
+    }
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        --fundo: #14111f; --card: #1e1a2d; --texto: #f2effa; --suave: #a59fbb;
+        --destaque: #a88bff; --destaque-escuro: #8f6cf5; --ok: #46d28a; --erro: #ff7b7b; --borda: #302a45;
+      }
+    }
+    :root[data-theme="dark"] {
+      --fundo: #14111f; --card: #1e1a2d; --texto: #f2effa; --suave: #a59fbb;
+      --destaque: #a88bff; --destaque-escuro: #8f6cf5; --ok: #46d28a; --erro: #ff7b7b; --borda: #302a45;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; background: var(--fundo); color: var(--texto);
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      line-height: 1.45;
+    }
+    main { max-width: 640px; margin: 0 auto; padding: 24px 16px 48px; }
+    h1 { font-size: 1.6rem; margin: 0 0 4px; }
+    .sub { color: var(--suave); margin: 0 0 20px; }
+    .card {
+      background: var(--card); border: 1px solid var(--borda); border-radius: 16px;
+      padding: 18px; margin-bottom: 16px;
+    }
+    .card h2 { font-size: 1rem; margin: 0 0 12px; }
+    .status { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+    .bolinha { width: 10px; height: 10px; border-radius: 50%; background: var(--erro); flex: none; }
+    .bolinha.on { background: var(--ok); }
+    #qr { display: none; margin-top: 12px; text-align: center; }
+    #qr img { width: 220px; max-width: 100%; border-radius: 8px; background: #fff; padding: 8px; }
+    #qr p { color: var(--suave); font-size: 0.9rem; }
+    .aviso { color: var(--erro); font-size: 0.9rem; margin-top: 8px; }
+    label { display: block; font-size: 0.9rem; color: var(--suave); margin: 12px 0 6px; }
+    input[type="text"], input[type="number"], input[type="tel"] {
+      width: 100%; padding: 11px 12px; border-radius: 10px; font-size: 1rem;
+      border: 1px solid var(--borda); background: var(--fundo); color: var(--texto);
+    }
+    input[type="file"] { width: 100%; color: var(--suave); }
+    .linha { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .dica { font-size: 0.82rem; color: var(--suave); margin-top: 6px; }
+    .previa { margin-top: 10px; display: none; }
+    .previa img, .previa video { max-width: 100%; max-height: 220px; border-radius: 10px; display: block; margin: 0 auto; }
+    .previa audio { width: 100%; }
+    button {
+      width: 100%; margin-top: 8px; padding: 14px; border: 0; border-radius: 12px;
+      background: var(--destaque); color: #fff; font-size: 1.05rem; font-weight: 700; cursor: pointer;
+    }
+    button:hover { background: var(--destaque-escuro); }
+    button:disabled { opacity: 0.55; cursor: wait; }
+    #resultado { margin-top: 12px; font-weight: 600; min-height: 1.2em; }
+    #resultado.ok { color: var(--ok); }
+    #resultado.erro { color: var(--erro); }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Figurinhas com Som</h1>
+  <p class="sub">Monte a figurinha, adicione o áudio e envie para o WhatsApp.</p>
+
+  <section class="card">
+    <div class="status"><span id="bolinha" class="bolinha"></span><span id="textoStatus">Verificando conexão...</span></div>
+    <div id="qr"><img id="imgQr" alt="QR Code do WhatsApp" /><p>WhatsApp → Aparelhos conectados → Conectar um aparelho</p></div>
+    <div id="avisoStatus" class="aviso"></div>
+  </section>
+
+  <form id="form" class="card">
+    <h2>1. Figurinha (imagem, GIF ou vídeo)</h2>
+    <input type="file" id="midia" name="midia" accept="image/*,video/*" required />
+    <div class="previa" id="previaMidia"></div>
+    <div class="linha">
+      <div>
+        <label for="inicioMidia">Começar em (segundos)</label>
+        <input type="number" id="inicioMidia" name="inicioMidia" min="0" step="0.1" value="0" />
+      </div>
+      <div>
+        <label for="duracaoMidia">Duração (máx. 6 s p/ animada)</label>
+        <input type="number" id="duracaoMidia" name="duracaoMidia" min="0.5" max="6" step="0.1" placeholder="6" />
+      </div>
+    </div>
+    <p class="dica">Imagens estáticas ficam com até 100 KB. GIFs e vídeos viram figurinha animada.</p>
+
+    <h2 style="margin-top:22px">2. Áudio (opcional)</h2>
+    <input type="file" id="audio" name="audio" accept="audio/*,video/*" />
+    <div class="previa" id="previaAudio"></div>
+    <div class="linha">
+      <div>
+        <label for="inicioAudio">Começar em (segundos)</label>
+        <input type="number" id="inicioAudio" name="inicioAudio" min="0" step="0.1" value="0" />
+      </div>
+      <div>
+        <label for="duracaoAudio">Duração (segundos)</label>
+        <input type="number" id="duracaoAudio" name="duracaoAudio" min="0.5" step="0.1" placeholder="tudo" />
+      </div>
+    </div>
+    <p class="dica">O WhatsApp não toca som dentro da figurinha. O áudio é enviado logo depois, como nota de voz.</p>
+
+    <h2 style="margin-top:22px">3. Destinatário</h2>
+    <label for="numero">Número com DDI e DDD</label>
+    <input type="tel" id="numero" name="numero" placeholder="5511999999999" inputmode="numeric" required />
+
+    <button type="submit" id="enviar">Enviar no WhatsApp</button>
+    <div id="resultado" role="status"></div>
+  </form>
+</main>
+
+<script>
+  const $ = (id) => document.getElementById(id);
+
+  function mostrarPrevia(input, container) {
+    const arquivo = input.files[0];
+    container.innerHTML = '';
+    if (!arquivo) { container.style.display = 'none'; return; }
+    const url = URL.createObjectURL(arquivo);
+    let el;
+    if (arquivo.type.startsWith('image/')) { el = new Image(); }
+    else if (arquivo.type.startsWith('video/')) { el = document.createElement('video'); el.controls = true; }
+    else { el = document.createElement('audio'); el.controls = true; }
+    el.src = url;
+    container.appendChild(el);
+    container.style.display = 'block';
+  }
+  $('midia').addEventListener('change', (e) => mostrarPrevia(e.target, $('previaMidia')));
+  $('audio').addEventListener('change', (e) => mostrarPrevia(e.target, $('previaAudio')));
+
+  async function atualizarStatus() {
+    try {
+      const r = await fetch('/api/status');
+      const s = await r.json();
+      $('bolinha').classList.toggle('on', s.conectado);
+      $('textoStatus').textContent = s.conectado ? 'WhatsApp conectado' : 'WhatsApp desconectado';
+      $('qr').style.display = s.qr && !s.conectado ? 'block' : 'none';
+      if (s.qr) $('imgQr').src = s.qr;
+      $('avisoStatus').textContent = s.erro || '';
+    } catch { $('textoStatus').textContent = 'Servidor indisponível'; }
+  }
+  atualizarStatus();
+  setInterval(atualizarStatus, 3000);
+
+  $('form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const botao = $('enviar');
+    const resultado = $('resultado');
+    botao.disabled = true;
+    botao.textContent = 'Enviando...';
+    resultado.className = ''; resultado.textContent = '';
+    try {
+      const resposta = await fetch('/api/enviar', { method: 'POST', body: new FormData($('form')) });
+      const dados = await resposta.json();
+      if (!resposta.ok) throw new Error(dados.erro || 'Falha ao enviar.');
+      resultado.className = 'ok';
+      resultado.textContent = dados.mensagem + ` (figurinha: ${dados.tamanhoKb} KB)`;
+    } catch (err) {
+      resultado.className = 'erro';
+      resultado.textContent = err.message;
+    } finally {
+      botao.disabled = false;
+      botao.textContent = 'Enviar no WhatsApp';
+    }
+  });
+</script>
+</body>
+</html>
