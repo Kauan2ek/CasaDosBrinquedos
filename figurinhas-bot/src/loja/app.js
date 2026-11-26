@@ -198,6 +198,67 @@ function criarApp() {
     res.json(lista);
   });
 
+  // ---------- Pedidos ----------
+  // O cliente descreve a figurinha; o site grava o pedido e abre o WhatsApp da loja com a mensagem pronta.
+  app.post('/api/pedidos', auth.exigirLogin, upload.single('referencia'), async (req, res) => {
+    try {
+      const numeroLoja = (process.env.WHATSAPP_LOJA || '').replace(/\D/g, '');
+      if (!numeroLoja) return res.status(500).json({ erro: 'Número de WhatsApp da loja não configurado.' });
+
+      const descricao = String(req.body.descricao || '').trim();
+      if (descricao.length < 5) return res.status(400).json({ erro: 'Descreva a figurinha com pelo menos 5 caracteres.' });
+      if (descricao.length > 1000) return res.status(400).json({ erro: 'Descrição muito longa (máx. 1000 caracteres).' });
+
+      let arquivoReferencia = null;
+      if (req.file) {
+        if (!req.file.mimetype.startsWith('image/')) return res.status(400).json({ erro: 'A referência precisa ser uma imagem.' });
+        const ext = EXTENSOES[req.file.mimetype] || path.extname(req.file.originalname).toLowerCase() || '.img';
+        arquivoReferencia = `${crypto.randomUUID()}${ext}`;
+        await fs.writeFile(path.join(PASTA_ARQUIVOS, arquivoReferencia), req.file.buffer);
+      }
+
+      const r = db.prepare('INSERT INTO pedidos (usuario_id, descricao, arquivo_referencia) VALUES (?, ?, ?)')
+        .run(req.usuario.id, descricao, arquivoReferencia);
+      const id = Number(r.lastInsertRowid);
+
+      const texto = [
+        `Olá! Quero fazer um pedido de figurinha (pedido #${id}).`,
+        `Cliente: ${req.usuario.nome}`,
+        `Descrição: ${descricao}`,
+        arquivoReferencia ? 'Enviei uma imagem de referência pelo site.' : null,
+      ].filter(Boolean).join('\n');
+
+      res.status(201).json({
+        id,
+        whatsappUrl: `https://wa.me/${numeroLoja}?text=${encodeURIComponent(texto)}`,
+      });
+    } catch (erro) {
+      res.status(400).json({ erro: erro.message });
+    }
+  });
+
+  app.get('/api/meus-pedidos', auth.exigirLogin, (req, res) => {
+    res.json(db.prepare(`SELECT id, descricao, arquivo_referencia IS NOT NULL AS tem_referencia, criado_em
+                         FROM pedidos WHERE usuario_id = ? ORDER BY id DESC`).all(req.usuario.id));
+  });
+
+  app.get('/api/admin/pedidos', auth.exigirAdmin, (req, res) => {
+    res.json(db.prepare(`
+      SELECT p.id, p.descricao, p.arquivo_referencia IS NOT NULL AS tem_referencia, p.criado_em,
+             u.nome AS cliente_nome, u.email AS cliente_email
+      FROM pedidos p JOIN usuarios u ON u.id = p.usuario_id ORDER BY p.id DESC`).all());
+  });
+
+  // Imagem de referência: só o cliente que fez o pedido ou o admin
+  app.get('/api/pedidos/:id/referencia', auth.exigirLogin, (req, res) => {
+    const p = db.prepare('SELECT * FROM pedidos WHERE id = ?').get(Number(req.params.id));
+    if (!p || !p.arquivo_referencia) return res.status(404).json({ erro: 'Pedido não encontrado.' });
+    if (req.usuario.papel !== 'admin' && p.usuario_id !== req.usuario.id) {
+      return res.status(404).json({ erro: 'Pedido não encontrado.' });
+    }
+    res.sendFile(path.join(PASTA_ARQUIVOS, p.arquivo_referencia));
+  });
+
   // ---------- Arquivos (só dono ou admin) ----------
   app.get('/api/figurinhas/:id/arquivo/:tipo', auth.exigirLogin, async (req, res) => {
     const f = db.prepare('SELECT * FROM figurinhas WHERE id = ?').get(Number(req.params.id));

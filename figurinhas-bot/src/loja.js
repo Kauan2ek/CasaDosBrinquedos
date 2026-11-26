@@ -20,4 +20,5 @@ function garantirAdmin() {
 }
 
 garantirAdmin();
+if (!process.env.WHATSAPP_LOJA) console.warn('Aviso: defina WHATSAPP_LOJA (ex.: 5511999999999) para os pedidos abrirem seu WhatsApp.');
 criarApp().listen(PORTA, HOST, () => console.log(`Loja em http://${HOST}:${PORTA}`));

@@ -77,8 +77,10 @@ e o site só mostra e libera download para esse dono.
 Precisa de **Node 22.5+** (usa o SQLite embutido do Node).
 
 ```bash
-ADMIN_EMAIL=seu@email.com ADMIN_SENHA=uma-senha-forte npm run loja
+ADMIN_EMAIL=seu@email.com ADMIN_SENHA=uma-senha-forte WHATSAPP_LOJA=5511999999999 npm run loja
 ```
+
+`WHATSAPP_LOJA` é o seu número com DDI e DDD. Os pedidos abrem uma conversa com você nesse número.
 
 Abra http://localhost:3001. Na primeira execução o administrador é criado com essas variáveis;
 depois disso elas não são mais necessárias.
@@ -91,7 +93,12 @@ depois disso elas não são mais necessárias.
 
 ## O que o cliente vê
 
-Só as figurinhas em que ele é o dono, com botões para baixar a figurinha e o áudio.
+- As figurinhas em que ele é o dono, com botões para baixar a figurinha e o áudio.
+- **Fazer um pedido:** descreve a figurinha (e pode anexar uma imagem de referência). O pedido fica registrado
+  e o WhatsApp da loja abre com a mensagem pronta. O cliente só precisa apertar enviar.
+- Os próprios pedidos, com link para a imagem de referência.
+
+O admin vê todos os pedidos recebidos, com cliente e imagem de referência.
 
 ## Onde ficam os dados
 

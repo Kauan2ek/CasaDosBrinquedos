@@ -35,6 +35,15 @@ db.exec(`
     criado_em TEXT NOT NULL DEFAULT (datetime('now'))
   );
 
+  -- Pedidos feitos pelo cliente (depois o contato segue pelo WhatsApp)
+  CREATE TABLE IF NOT EXISTS pedidos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    descricao TEXT NOT NULL,
+    arquivo_referencia TEXT,
+    criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
   -- Quem foi dono de cada figurinha e quando: rastreabilidade de vendas
   CREATE TABLE IF NOT EXISTS historico_dono (
     id INTEGER PRIMARY KEY AUTOINCREMENT,

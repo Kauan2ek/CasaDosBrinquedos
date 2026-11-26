@@ -28,6 +28,7 @@
     .sub { color: var(--suave); margin: 4px 0 0; font-size: 0.95rem; }
     .card { background: var(--card); border: 1px solid var(--borda); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
     label { display: block; font-size: 0.88rem; color: var(--suave); margin: 12px 0 6px; }
+    textarea { width: 100%; padding: 10px 12px; border-radius: 10px; font: inherit; border: 1px solid var(--borda); background: var(--fundo); color: var(--texto); }
     input, select { width: 100%; padding: 10px 12px; border-radius: 10px; font-size: 1rem; border: 1px solid var(--borda); background: var(--fundo); color: var(--texto); }
     input[type="file"] { padding: 8px; }
     .linha { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -78,6 +79,23 @@
       <button class="secundario pequeno" data-sair>Sair</button>
     </div>
     <div class="card">
+      <h2>Fazer um pedido</h2>
+      <form id="formPedido">
+        <label for="descricao">Como você quer a figurinha?</label>
+        <textarea id="descricao" name="descricao" rows="4" required minlength="5" maxlength="1000"
+          placeholder="Ex.: figurinha do gato dançando, com a frase 'bom dia!', e o áudio da risada"></textarea>
+        <label for="referencia">Imagem de referência (opcional)</label>
+        <input id="referencia" name="referencia" type="file" accept="image/*" />
+        <button class="bloco" type="submit" id="btnPedido">Enviar pedido pelo WhatsApp</button>
+        <div id="msgPedido" class="mensagem"></div>
+        <p class="dica">Ao enviar, o pedido é registrado e o WhatsApp da loja abre com a mensagem pronta. A imagem de referência fica guardada no seu pedido; se preferir, mande-a também no chat.</p>
+      </form>
+      <h2 style="margin-top:20px">Meus pedidos</h2>
+      <ul id="listaMeusPedidos" class="historico"></ul>
+    </div>
+
+    <div class="card">
+      <h2>Minhas figurinhas</h2>
       <div id="listaCliente" class="grade"></div>
       <p id="semFigurinhas" class="sub oculto">Você ainda não tem figurinhas.</p>
     </div>
@@ -112,6 +130,16 @@
         <button class="bloco" type="submit" id="btnCriar">Criar figurinha</button>
         <div id="msgFigurinha" class="mensagem"></div>
       </form>
+    </div>
+
+    <div class="card">
+      <h2>Pedidos recebidos</h2>
+      <div style="overflow-x:auto">
+        <table>
+          <thead><tr><th>#</th><th>Cliente</th><th>Pedido</th><th>Referência</th></tr></thead>
+          <tbody id="tabelaPedidos"></tbody>
+        </table>
+      </div>
     </div>
 
     <div class="card">
@@ -159,6 +187,7 @@
   async function carregarCliente(usuario) {
     mostrar('telaCliente');
     $('saudacao').textContent = `Olá, ${usuario.nome}!`;
+    carregarMeusPedidos().catch(() => {});
     const lista = await api('/api/minhas-figurinhas');
     $('semFigurinhas').classList.toggle('oculto', lista.length > 0);
     $('listaCliente').innerHTML = lista.map((f) => `
@@ -170,12 +199,34 @@
       </div>`).join('');
   }
 
+  async function carregarMeusPedidos() {
+    const lista = await api('/api/meus-pedidos');
+    $('listaMeusPedidos').innerHTML = lista.map((p) => `
+      <li>#${p.id} — ${esc(p.descricao)} ${p.tem_referencia ? '<a href="/api/pedidos/' + p.id + '/referencia" target="_blank">(ver referência)</a>' : ''}
+          <span class="tag">${esc(p.criado_em)}</span></li>`).join('') || '<li>Você ainda não fez pedidos.</li>';
+  }
+
+  $('formPedido').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const botao = $('btnPedido');
+    botao.disabled = true; botao.textContent = 'Enviando...';
+    msg($('msgPedido'), '');
+    try {
+      const dados = await api('/api/pedidos', { method: 'POST', body: new FormData($('formPedido')) });
+      // Abre o WhatsApp da loja com a mensagem pronta
+      window.location.href = dados.whatsappUrl;
+    } catch (err) {
+      msg($('msgPedido'), err.message, 'erro');
+      botao.disabled = false; botao.textContent = 'Enviar pedido pelo WhatsApp';
+    }
+  });
+
   // ---------- Admin ----------
   let clientes = [];
 
   async function carregarAdmin(usuario) {
     mostrar('telaAdmin');
-    await Promise.all([carregarClientes(), carregarFigurinhas()]);
+    await Promise.all([carregarClientes(), carregarFigurinhas(), carregarPedidosAdmin()]);
   }
 
   async function carregarClientes() {
@@ -184,6 +235,17 @@
       clientes.map((c) => `<option value="${c.id}">${esc(c.nome)} (${esc(c.email)})</option>`).join('');
     $('donoNova').innerHTML = opcoes;
     $('listaClientes').innerHTML = clientes.map((c) => `<li>${esc(c.nome)} — ${esc(c.email)}</li>`).join('') || '<li>Nenhum cliente ainda.</li>';
+  }
+
+  async function carregarPedidosAdmin() {
+    const lista = await api('/api/admin/pedidos');
+    $('tabelaPedidos').innerHTML = lista.map((p) => `
+      <tr>
+        <td>${p.id}</td>
+        <td>${esc(p.cliente_nome)}<br><span class="tag">${esc(p.cliente_email)}</span></td>
+        <td>${esc(p.descricao)}<br><span class="tag">${esc(p.criado_em)}</span></td>
+        <td>${p.tem_referencia ? `<a class="botao" href="/api/pedidos/${p.id}/referencia" target="_blank">Ver imagem</a>` : '—'}</td>
+      </tr>`).join('') || '<tr><td colspan="4">Nenhum pedido ainda.</td></tr>';
   }
 
   async function carregarFigurinhas() {
