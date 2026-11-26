@@ -9,26 +9,30 @@
   <link href="https://fonts.googleapis.com/css2?family=Bagel+Fat+One&family=Figtree:wght@400;600;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --sol: #FFD23F;
-      --tinta: #1B1A2F;
-      --papel: #FFFFFF;
-      --tomate: #FF4D2E;
-      --menta: #2EC4A6;
-      --rosa: #FF8FB1;
-      --cinza: #5C5874;
-      --sombra: 6px 6px 0 var(--tinta);
-      --sombra-grande: 10px 10px 0 var(--tinta);
+      --fundo: #0B0912;
+      --papel: #17122A;
+      --papel-2: #1F1838;
+      --texto: #F4EFFF;
+      --cinza: #A99FC7;
+      --roxo: #A46BFF;
+      --roxo-forte: #8246F5;
+      --lilas: #D2B8FF;
+      --verde: #5EE7C2;
+      --rosa: #FF6FB5;
+      --borda: #352A55;
+      --sombra: 6px 6px 0 #000;
+      --sombra-grande: 10px 10px 0 #000;
     }
     * { box-sizing: border-box; }
     html { -webkit-text-size-adjust: 100%; }
     body {
-      margin: 0; min-height: 100vh; background-color: var(--sol); color: var(--tinta);
+      margin: 0; min-height: 100vh; background-color: var(--fundo); color: var(--texto);
       font-family: "Figtree", system-ui, -apple-system, "Segoe UI", sans-serif;
       font-size: 1rem; line-height: 1.5;
-      background-image: radial-gradient(rgba(27, 26, 47, 0.12) 1.2px, transparent 1.4px);
+      background-image: radial-gradient(rgba(164, 107, 255, 0.14) 1.2px, transparent 1.4px);
       background-size: 22px 22px;
     }
-    :focus-visible { outline: 3px solid var(--tomate); outline-offset: 3px; border-radius: 6px; }
+    :focus-visible { outline: 3px solid var(--lilas); outline-offset: 3px; border-radius: 6px; }
 
     /* ---------- Marca ---------- */
     .marca {
@@ -36,8 +40,8 @@
       max-width: 1040px; margin: 0 auto; font-family: "Bagel Fat One", sans-serif; font-size: 1.25rem;
     }
     .marca-selo {
-      width: 38px; height: 38px; border-radius: 50%; background: var(--tomate);
-      border: 3px solid var(--tinta); box-shadow: 3px 3px 0 var(--tinta); position: relative;
+      width: 38px; height: 38px; border-radius: 50%; background: var(--roxo);
+      border: 3px solid var(--lilas); box-shadow: 3px 3px 0 #000; position: relative;
     }
     .marca-selo::after {
       content: ""; position: absolute; inset: 7px; border-radius: 50%; border: 3px dashed #fff;
@@ -50,130 +54,120 @@
     .sub { color: var(--cinza); margin: 6px 0 0; font-size: 1.02rem; max-width: 56ch; }
     .dica { font-size: 0.9rem; color: var(--cinza); margin: 8px 0 0; }
 
-    /* ---------- Cartões: borda de figurinha ---------- */
+    /* ---------- Cartões ---------- */
     .card {
-      background: var(--papel); border: 3px solid var(--tinta); border-radius: 22px;
+      background: var(--papel); border: 2px solid var(--borda); border-radius: 22px;
       box-shadow: var(--sombra-grande); padding: 22px; margin-bottom: 26px;
     }
 
-    /* ---------- Login (primeira dobra) ---------- */
+    /* ---------- Login ---------- */
     .hero { display: grid; gap: 28px; align-items: center; margin: 14px 0 30px; }
     .hero .sub { margin-top: 20px; }
-    @media (min-width: 820px) { .hero { grid-template-columns: 1.1fr 0.9fr; } }
-    .hero h1 span { display: inline-block; background: var(--tomate); color: #fff; padding: 0 12px; border: 3px solid var(--tinta); border-radius: 14px; transform: rotate(-2deg); box-shadow: 4px 4px 0 var(--tinta); }
-    .vitrine { position: relative; height: 240px; }
-    .figura-demo {
-      position: absolute; width: 150px; height: 150px; background: #fff; padding: 12px;
-      border: 3px solid var(--tinta); border-radius: 22px; box-shadow: 6px 6px 0 var(--tinta);
-      display: grid; place-items: center; font-family: "Bagel Fat One", sans-serif; font-size: 1.35rem; text-align: center;
-      transition: transform 0.25s ease;
+    .hero h1 span {
+      display: inline-block; background: var(--roxo); color: #0B0912; padding: 0 12px;
+      border: 2px solid var(--lilas); border-radius: 14px; transform: rotate(-2deg); box-shadow: 4px 4px 0 #000;
     }
-    .figura-demo:nth-child(1) { left: 2%; top: 14px; transform: rotate(-8deg); background: var(--menta); color: var(--tinta); }
-    .figura-demo:nth-child(2) { left: 38%; top: 0; transform: rotate(5deg); background: var(--rosa); color: var(--tinta); }
-    .figura-demo:nth-child(3) { left: 16%; top: 96px; transform: rotate(-3deg); background: #fff; color: var(--tomate); }
-    .figura-demo:hover { transform: rotate(0deg) scale(1.05); }
-
     .login { max-width: 440px; margin: 0 0 40px; }
     .login h2 { margin-bottom: 4px; }
 
     /* ---------- Formulários ---------- */
-    label { display: block; font-weight: 800; font-size: 0.92rem; margin: 16px 0 6px; }
+    label { display: block; font-weight: 800; font-size: 0.92rem; margin: 16px 0 6px; color: var(--lilas); }
     input, select, textarea {
       width: 100%; padding: 12px 14px; border-radius: 14px; font: inherit; font-size: 1rem;
-      border: 3px solid var(--tinta); background: #fff; color: var(--tinta);
+      border: 2px solid var(--borda); background: var(--fundo); color: var(--texto);
     }
-    input[type="file"] { padding: 10px; font-size: 0.92rem; background: #FFF9E8; cursor: pointer; }
+    input:focus, select:focus, textarea:focus { border-color: var(--roxo); outline: none; }
+    input[type="file"] { padding: 10px; font-size: 0.92rem; background: var(--papel-2); cursor: pointer; }
     input[type="file"]::file-selector-button {
-      font: inherit; font-weight: 800; border: 2px solid var(--tinta); border-radius: 10px;
-      background: var(--sol); color: var(--tinta); padding: 6px 12px; margin-right: 10px; cursor: pointer;
+      font: inherit; font-weight: 800; border: 2px solid var(--lilas); border-radius: 10px;
+      background: var(--roxo); color: #0B0912; padding: 6px 12px; margin-right: 10px; cursor: pointer;
     }
     textarea { resize: vertical; }
     .linha { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
     @media (max-width: 560px) { .linha { grid-template-columns: 1fr; } }
 
-    /* ---------- Botões: adesivos ---------- */
+    /* ---------- Botões ---------- */
     button, a.botao {
       font: inherit; font-weight: 800; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
-      padding: 13px 20px; border: 3px solid var(--tinta); border-radius: 999px; background: var(--tomate); color: #fff;
-      box-shadow: 4px 4px 0 var(--tinta); text-decoration: none; font-size: 1rem; line-height: 1.1;
-      transition: transform 0.12s ease, box-shadow 0.12s ease;
+      padding: 13px 20px; border: 2px solid var(--lilas); border-radius: 999px; background: var(--roxo); color: #0B0912;
+      box-shadow: 4px 4px 0 #000; text-decoration: none; font-size: 1rem; line-height: 1.1;
+      transition: transform 0.12s ease, box-shadow 0.12s ease, background 0.12s ease;
     }
-    button:hover, a.botao:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--tinta); }
-    button:active, a.botao:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 var(--tinta); }
-    button:disabled { opacity: 0.55; cursor: wait; transform: none; box-shadow: 4px 4px 0 var(--tinta); }
+    button:hover, a.botao:hover { background: var(--lilas); transform: translate(-2px, -2px); box-shadow: 6px 6px 0 #000; }
+    button:active, a.botao:active { transform: translate(3px, 3px); box-shadow: 1px 1px 0 #000; }
+    button:disabled { opacity: 0.5; cursor: wait; transform: none; box-shadow: 4px 4px 0 #000; }
     button.bloco { width: 100%; margin-top: 18px; font-size: 1.08rem; padding: 15px 20px; }
-    button.secundario, a.botao.secundario { background: #fff; color: var(--tinta); }
-    button.pequeno { padding: 7px 14px; font-size: 0.88rem; box-shadow: 3px 3px 0 var(--tinta); }
+    button.secundario, a.botao.secundario { background: var(--papel-2); color: var(--texto); border-color: var(--borda); }
+    button.secundario:hover, a.botao.secundario:hover { background: var(--borda); }
+    button.pequeno { padding: 7px 14px; font-size: 0.88rem; box-shadow: 3px 3px 0 #000; }
 
     /* ---------- Mensagens ---------- */
     .mensagem { font-weight: 800; margin-top: 12px; min-height: 1.2em; }
-    .mensagem.ok { color: #0E7C66; } .mensagem.erro { color: #C2321A; }
+    .mensagem.ok { color: var(--verde); } .mensagem.erro { color: var(--rosa); }
     .historico { font-size: 0.92rem; color: var(--cinza); margin-top: 12px; }
     .tag {
       display: inline-block; padding: 2px 10px; border-radius: 999px; font-size: 0.8rem; font-weight: 800;
-      background: var(--sol); border: 2px solid var(--tinta); color: var(--tinta); margin: 2px 0;
+      background: var(--papel-2); border: 1px solid var(--borda); color: var(--lilas); margin: 2px 0;
     }
-    .tag.sem { background: var(--rosa); }
+    .tag.sem { color: var(--rosa); border-color: var(--rosa); }
 
-    /* ---------- Topo das telas ---------- */
+    /* ---------- Topo ---------- */
     .topo { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; margin: 6px 0 24px; flex-wrap: wrap; }
     .topo .contagem {
-      display: inline-block; margin-top: 12px; background: var(--menta); border: 3px solid var(--tinta);
-      border-radius: 14px; padding: 4px 14px; font-weight: 800; box-shadow: 4px 4px 0 var(--tinta); transform: rotate(-1.5deg);
+      display: inline-block; margin-top: 12px; background: var(--verde); color: #0B0912; border: 2px solid var(--verde);
+      border-radius: 14px; padding: 4px 14px; font-weight: 800; box-shadow: 4px 4px 0 #000; transform: rotate(-1.5deg);
     }
 
-    /* ---------- Álbum: grade de figurinhas ---------- */
+    /* ---------- Álbum ---------- */
     .grade { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 20px; }
     .item {
-      background: #fff; border: 3px solid var(--tinta); border-radius: 18px; padding: 12px; text-align: center;
+      background: var(--papel-2); border: 2px solid var(--borda); border-radius: 18px; padding: 12px; text-align: center;
       box-shadow: var(--sombra); transform: rotate(var(--giro, 0deg));
-      transition: transform 0.2s ease;
+      transition: transform 0.2s ease, border-color 0.2s ease;
     }
     .item:nth-child(3n+1) { --giro: -2deg; }
     .item:nth-child(3n+2) { --giro: 1.5deg; }
     .item:nth-child(3n) { --giro: -1deg; }
-    .item:hover { transform: rotate(0deg) translateY(-4px); }
+    .item:hover { transform: rotate(0deg) translateY(-4px); border-color: var(--roxo); }
     .item .imagem {
-      width: 100%; aspect-ratio: 1; border-radius: 12px; border: 2px dashed rgba(27,26,47,0.35);
-      background: repeating-conic-gradient(#EEE9D8 0 25%, #fff 0 50%) 50% / 20px 20px;
+      width: 100%; aspect-ratio: 1; border-radius: 12px; border: 1px dashed var(--borda);
+      background: repeating-conic-gradient(#1A1530 0 25%, #120E22 0 50%) 50% / 20px 20px;
       display: grid; place-items: center; overflow: hidden;
     }
     .item .imagem img { width: 88%; height: 88%; object-fit: contain; }
     .item p { margin: 10px 0 8px; font-family: "Bagel Fat One", sans-serif; font-weight: 400; font-size: 1.1rem; line-height: 1.15; }
     .item .acoes { display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; }
-    .item .acoes a.botao { font-size: 0.84rem; padding: 7px 12px; box-shadow: 3px 3px 0 var(--tinta); }
+    .item .acoes a.botao { font-size: 0.84rem; padding: 7px 12px; box-shadow: 3px 3px 0 #000; }
 
-    /* Álbum vazio */
     .vazio { text-align: center; padding: 28px 12px; }
     .vazio p { font-size: 1.1rem; font-weight: 800; }
 
     /* ---------- Pedidos ---------- */
     .lista-pedidos { list-style: none; padding: 0; margin: 0; display: grid; gap: 12px; }
     .lista-pedidos li {
-      background: #FFF9E8; border: 3px solid var(--tinta); border-radius: 16px; padding: 14px 16px;
-      box-shadow: 4px 4px 0 var(--tinta);
+      background: var(--papel-2); border: 2px solid var(--borda); border-radius: 16px; padding: 14px 16px;
+      box-shadow: 4px 4px 0 #000;
     }
     .lista-pedidos li strong { font-family: "Bagel Fat One", sans-serif; font-weight: 400; font-size: 1.1rem; }
     .lista-pedidos .arquivos { margin-top: 10px; display: flex; gap: 6px; flex-wrap: wrap; }
-    .lista-pedidos .arquivos a.botao { font-size: 0.82rem; padding: 6px 12px; box-shadow: 3px 3px 0 var(--tinta); }
+    .lista-pedidos .arquivos a.botao { font-size: 0.82rem; padding: 6px 12px; box-shadow: 3px 3px 0 #000; }
 
-    /* Pagamento: etiqueta de preço */
+    /* Pagamento: destaque */
     #pagamento {
-      background: var(--menta) !important; transform: rotate(-1deg);
-      box-shadow: 8px 8px 0 var(--tinta) !important;
+      background: var(--papel-2) !important; border-color: var(--roxo) !important; transform: rotate(-1deg);
+      box-shadow: 8px 8px 0 var(--roxo-forte) !important;
     }
-    #pagamento h2 { margin-bottom: 8px; }
+    #pagamento h2 { margin-bottom: 8px; color: var(--lilas); }
     #pagamento p { font-size: 1.08rem; font-weight: 600; margin: 6px 0; }
-    #pagamento strong { font-weight: 800; }
+    #pagamento strong { font-weight: 800; color: var(--verde); }
 
-    /* Tabelas do painel */
+    /* Tabelas */
     table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 0.94rem; }
-    th, td { text-align: left; padding: 12px 10px; border-bottom: 2px dashed rgba(27,26,47,0.3); vertical-align: middle; }
-    th { font-weight: 800; color: var(--cinza); font-size: 0.82rem; }
+    th, td { text-align: left; padding: 12px 10px; border-bottom: 1px dashed var(--borda); vertical-align: middle; }
+    th { font-weight: 800; color: var(--lilas); font-size: 0.82rem; }
 
     .oculto { display: none !important; }
 
-    /* ---------- Entrada do álbum: uma única sequência ---------- */
     @keyframes colar {
       from { opacity: 0; transform: translateY(18px) rotate(calc(var(--giro, 0deg) - 8deg)) scale(0.9); }
       to { opacity: 1; transform: translateY(0) rotate(var(--giro, 0deg)) scale(1); }
@@ -200,11 +194,7 @@
         <h1>Sua figurinha, <span>do seu jeito.</span></h1>
         <p class="sub">Escreva o nome, mande a foto ou o vídeo com o som que você quer, e a gente monta a figurinha pra você colar no WhatsApp.</p>
       </div>
-      <div class="vitrine" aria-hidden="true">
-        <div class="figura-demo">bom dia!</div>
-        <div class="figura-demo">kkkkk</div>
-        <div class="figura-demo">te amo</div>
-      </div>
+
     </div>
     <div class="card login">
       <h2>Entrar</h2>
