@@ -213,13 +213,8 @@
   <!-- CLIENTE -->
   <section id="telaCliente" class="oculto">
     <div class="topo">
-      <div><h1>Meu álbum</h1><p class="sub" id="saudacao"></p><span class="contagem" id="contagem"></span></div>
+      <div><h1>Meus pedidos</h1><p class="sub" id="saudacao"></p></div>
       <button class="secundario pequeno" data-sair>Sair</button>
-    </div>
-    <div class="card">
-      <h2>Figurinhas coladas</h2>
-      <div id="listaCliente" class="grade"></div>
-      <div id="semFigurinhas" class="vazio oculto"><p>Seu álbum ainda está vazio.</p><p class="sub">Faça um pedido aqui em cima e a primeira figurinha começa a colar.</p></div>
     </div>
     <div class="card">
       <h2>Encomendar figurinha</h2>
@@ -247,55 +242,8 @@
   <!-- ADMIN -->
   <section id="telaAdmin" class="oculto">
     <div class="topo">
-      <div><h1>Painel de vendas</h1><p class="sub">Crie figurinhas e defina quem é o dono de cada uma.</p></div>
+      <div><h1>Pedidos</h1><p class="sub">Pedidos recebidos e clientes da loja.</p></div>
       <button class="secundario pequeno" data-sair>Sair</button>
-    </div>
-
-    <div class="card">
-      <h2>Nova figurinha</h2>
-      <form id="formFigurinha">
-        <label for="titulo">Título</label>
-        <input id="titulo" name="titulo" required maxlength="80" placeholder="Ex.: Risada do Shrek" />
-        <label for="textoFigurinha">Nome escrito na figurinha (opcional, até 30 caracteres)</label>
-        <input id="textoFigurinha" name="textoFigurinha" maxlength="30" placeholder="Ex.: Fê" />
-        <label for="midia">Imagem, GIF ou vídeo</label>
-        <input id="midia" name="midia" type="file" accept="image/*,video/*" required />
-        <div class="linha">
-          <div><label for="inicioMidia">Começar em (s)</label><input id="inicioMidia" name="inicioMidia" type="number" min="0" step="0.1" value="0" /></div>
-          <div><label for="duracaoMidia">Duração (s, máx. 6 p/ animada)</label><input id="duracaoMidia" name="duracaoMidia" type="number" min="0.5" max="6" step="0.1" /></div>
-        </div>
-        <label for="audio">Áudio (opcional)</label>
-        <input id="audio" name="audio" type="file" accept="audio/*,video/*" />
-        <div class="linha">
-          <div><label for="inicioAudio">Começar em (s)</label><input id="inicioAudio" name="inicioAudio" type="number" min="0" step="0.1" value="0" /></div>
-          <div><label for="duracaoAudio">Duração (s)</label><input id="duracaoAudio" name="duracaoAudio" type="number" min="0.5" step="0.1" /></div>
-        </div>
-        <label for="donoNova">Cliente dono (pode deixar em branco)</label>
-        <select id="donoNova" name="donoId"></select>
-        <button class="bloco" type="submit" id="btnCriar">Criar figurinha</button>
-        <div id="msgFigurinha" class="mensagem"></div>
-      </form>
-    </div>
-
-    <div class="card">
-      <h2>Pedidos recebidos</h2>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr><th>#</th><th>Cliente</th><th>Pedido</th><th>Arquivos</th></tr></thead>
-          <tbody id="tabelaPedidos"></tbody>
-        </table>
-      </div>
-    </div>
-
-    <div class="card">
-      <h2>Figurinhas e donos</h2>
-      <div style="overflow-x:auto">
-        <table>
-          <thead><tr><th>Figurinha</th><th>Dono</th><th>Trocar dono</th><th></th></tr></thead>
-          <tbody id="tabelaFigurinhas"></tbody>
-        </table>
-      </div>
-      <div id="historico" class="historico"></div>
     </div>
 
     <div class="card">
@@ -333,18 +281,6 @@
     mostrar('telaCliente');
     $('saudacao').textContent = `Olá, ${usuario.nome}!`;
     carregarMeusPedidos().catch(() => {});
-    const lista = await api('/api/minhas-figurinhas');
-    $('semFigurinhas').classList.toggle('oculto', lista.length > 0);
-    $('contagem').textContent = lista.length === 1 ? '1 figurinha' : `${lista.length} figurinhas`;
-    $('listaCliente').innerHTML = lista.map((f) => `
-      <div class="item">
-        <div class="imagem"><img src="/api/figurinhas/${f.id}/arquivo/figurinha" alt="Figurinha ${esc(f.titulo)}" /></div>
-        <p>${esc(f.titulo)}</p>
-        <div class="acoes">
-          <a class="botao" href="/api/figurinhas/${f.id}/arquivo/figurinha" download>Baixar</a>
-          ${f.tem_audio ? `<a class="botao secundario" href="/api/figurinhas/${f.id}/arquivo/audio" download>Áudio</a>` : ''}
-        </div>
-      </div>`).join('');
   }
 
   const arquivosHtml = (p) => (p.arquivos || []).map((a) =>
@@ -387,14 +323,11 @@
 
   async function carregarAdmin(usuario) {
     mostrar('telaAdmin');
-    await Promise.all([carregarClientes(), carregarFigurinhas(), carregarPedidosAdmin()]);
+    await Promise.all([carregarClientes(), carregarPedidosAdmin()]);
   }
 
   async function carregarClientes() {
     clientes = await api('/api/admin/usuarios');
-    const opcoes = '<option value="">— Sem dono (estoque) —</option>' +
-      clientes.map((c) => `<option value="${c.id}">${esc(c.nome)} (${esc(c.email)})</option>`).join('');
-    $('donoNova').innerHTML = opcoes;
     $('listaClientes').innerHTML = clientes.map((c) => `<li>${esc(c.nome)} — ${esc(c.email)}</li>`).join('') || '<li>Nenhum cliente ainda.</li>';
   }
 
@@ -409,56 +342,6 @@
       </tr>`).join('') || '<tr><td colspan="4">Nenhum pedido ainda.</td></tr>';
   }
 
-  async function carregarFigurinhas() {
-    const lista = await api('/api/admin/figurinhas');
-    $('tabelaFigurinhas').innerHTML = lista.map((f) => `
-      <tr>
-        <td>${esc(f.titulo)} <span class="tag">${f.animada ? 'animada' : 'estática'}</span> ${f.tem_audio ? '<span class="tag">com áudio</span>' : ''}</td>
-        <td>${f.dono_nome ? esc(f.dono_nome) : '<span class="tag sem">sem dono</span>'}</td>
-        <td>
-          <select data-trocar="${f.id}" style="min-width:160px">
-            <option value="">— Sem dono —</option>
-            ${clientes.map((c) => `<option value="${c.id}" ${c.id === f.dono_id ? 'selected' : ''}>${esc(c.nome)}</option>`).join('')}
-          </select>
-        </td>
-        <td><button class="secundario pequeno" data-historico="${f.id}">Histórico</button></td>
-      </tr>`).join('') || '<tr><td colspan="4">Nenhuma figurinha ainda.</td></tr>';
-  }
-
-  $('tabelaFigurinhas').addEventListener('change', async (e) => {
-    const id = e.target.dataset.trocar;
-    if (!id) return;
-    try {
-      await api(`/api/admin/figurinhas/${id}/dono`, {
-        method: 'PUT', headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ donoId: e.target.value || null }),
-      });
-      await carregarFigurinhas();
-    } catch (err) { alert(err.message); }
-  });
-
-  $('tabelaFigurinhas').addEventListener('click', async (e) => {
-    const id = e.target.dataset.historico;
-    if (!id) return;
-    const linhas = await api(`/api/admin/figurinhas/${id}/historico`);
-    $('historico').innerHTML = `<strong>Histórico da figurinha #${id}:</strong><br>` + (linhas.map((h) =>
-      `${esc(h.quando)} — de ${esc(h.de_nome || 'ninguém')} para ${esc(h.para_nome || 'ninguém')} (por ${esc(h.feito_por_nome || '?')})`).join('<br>') || 'Sem registros.');
-  });
-
-  $('formFigurinha').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const botao = $('btnCriar');
-    botao.disabled = true; botao.textContent = 'Criando...';
-    msg($('msgFigurinha'), '');
-    try {
-      const dados = await api('/api/admin/figurinhas', { method: 'POST', body: new FormData($('formFigurinha')) });
-      msg($('msgFigurinha'), `Figurinha "${dados.titulo}" criada.`, 'ok');
-      $('formFigurinha').reset();
-      await carregarFigurinhas();
-    } catch (err) { msg($('msgFigurinha'), err.message, 'erro'); }
-    finally { botao.disabled = false; botao.textContent = 'Criar figurinha'; }
-  });
-
   $('formCliente').addEventListener('submit', async (e) => {
     e.preventDefault();
     try {
@@ -469,7 +352,6 @@
       msg($('msgCliente'), 'Cliente cadastrado. Envie a senha inicial para ele com segurança.', 'ok');
       e.target.reset();
       await carregarClientes();
-      await carregarFigurinhas();
     } catch (err) { msg($('msgCliente'), err.message, 'erro'); }
   });
 
