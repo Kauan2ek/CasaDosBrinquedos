@@ -18,7 +18,7 @@ function obterTransporte() {
   return transporte;
 }
 
-async function enviarPedidoPorEmail({ id, cliente, quantidade, valor, descricao, temReferencia }) {
+async function enviarPedidoPorEmail({ id, cliente, quantidade, valor, descricao, nomeFigurinha, anexos = [] }) {
   if (!configurado()) {
     console.warn(`Pedido #${id} salvo, mas e-mail não enviado (SMTP/EMAIL_PEDIDOS não configurados).`);
     return;
@@ -27,10 +27,11 @@ async function enviarPedidoPorEmail({ id, cliente, quantidade, valor, descricao,
     `Novo pedido #${id}`,
     '',
     `Cliente: ${cliente.nome} <${cliente.email}>`,
+    `Nome na figurinha: ${nomeFigurinha}`,
     `Quantidade: ${quantidade}`,
     `Total: ${valor}`,
     `Descrição: ${descricao}`,
-    temReferencia ? 'Imagem de referência: anexada no painel da loja.' : 'Sem imagem de referência.',
+    anexos.length ? `Arquivos anexados: ${anexos.length}` : 'Nenhum arquivo enviado.',
     '',
     'Quando o pagamento Pix cair, envie a figurinha ao cliente.',
   ].join('\n');
@@ -38,8 +39,9 @@ async function enviarPedidoPorEmail({ id, cliente, quantidade, valor, descricao,
   await obterTransporte().sendMail({
     from: `"Loja de Figurinhas" <${process.env.SMTP_USER}>`,
     to: process.env.EMAIL_PEDIDOS,
-    subject: `Pedido #${id} de figurinha: ${quantidade} x ${valor}`,
+    subject: `Pedido #${id}: ${quantidade} figurinha(s) "${nomeFigurinha}" (${valor})`,
     text: texto,
+    attachments: anexos.map((a) => ({ filename: a.nome, content: a.buffer })),
   });
 }
 

@@ -39,11 +39,21 @@ db.exec(`
   CREATE TABLE IF NOT EXISTS pedidos (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
+    nome_figurinha TEXT NOT NULL,
     descricao TEXT NOT NULL,
     quantidade INTEGER NOT NULL DEFAULT 1,
     valor_centavos INTEGER NOT NULL DEFAULT 0,
-    arquivo_referencia TEXT,
     criado_em TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+
+  -- Imagens e vídeos enviados pelo cliente em cada pedido
+  CREATE TABLE IF NOT EXISTS pedido_arquivos (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pedido_id INTEGER NOT NULL REFERENCES pedidos(id) ON DELETE CASCADE,
+    arquivo TEXT NOT NULL,
+    nome_original TEXT NOT NULL,
+    mimetype TEXT NOT NULL,
+    tamanho INTEGER NOT NULL
   );
 
   -- Quem foi dono de cada figurinha e quando: rastreabilidade de vendas

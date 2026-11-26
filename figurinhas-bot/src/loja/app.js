@@ -142,6 +142,7 @@ function criarApp() {
           animada,
           inicio: segundos(req.body.inicioMidia),
           duracao: segundos(req.body.duracaoMidia) || undefined,
+          texto: String(req.body.textoFigurinha || '').trim() || undefined,
         });
         const arquivoFigurinha = `${crypto.randomUUID()}.webp`;
         await fs.writeFile(path.join(PASTA_ARQUIVOS, arquivoFigurinha), figurinha);
@@ -205,22 +206,38 @@ function criarApp() {
   });
 
   // ---------- Pedidos ----------
-  // O cliente descreve a figurinha; o site grava o pedido e abre o WhatsApp da loja com a mensagem pronta.
-  app.post('/api/pedidos', auth.exigirLogin, upload.single('referencia'), async (req, res) => {
+  // O cliente envia as imagens/vídeos e o nome da figurinha. O pedido é gravado, vai por e-mail
+  // com os arquivos anexados e o WhatsApp da loja abre com a mensagem pronta.
+  const MAX_ARQUIVOS = 5;
+  const MAX_TOTAL_BYTES = 15 * 1024 * 1024; // e-mail do Gmail aceita ~25 MB (com o anexo em base64)
+
+  const arquivosDoPedido = (pedidoId) => db.prepare(`
+    SELECT id, nome_original, mimetype, tamanho FROM pedido_arquivos WHERE pedido_id = ? ORDER BY id`).all(pedidoId);
+
+  const comArquivos = (pedidos) => pedidos.map((p) => ({ ...p, arquivos: arquivosDoPedido(p.id) }));
+
+  app.post('/api/pedidos', auth.exigirLogin, upload.array('arquivos', MAX_ARQUIVOS), async (req, res) => {
     try {
       const numeroLoja = (process.env.WHATSAPP_LOJA || '').replace(/\D/g, '');
       if (!numeroLoja) return res.status(500).json({ erro: 'Número de WhatsApp da loja não configurado.' });
 
+      const nomeFigurinha = String(req.body.nomeFigurinha || '').trim();
+      if (nomeFigurinha.length < 1) return res.status(400).json({ erro: 'Informe o nome que vai aparecer na figurinha.' });
+      if (nomeFigurinha.length > 30) return res.status(400).json({ erro: 'O nome da figurinha pode ter até 30 caracteres.' });
+
       const descricao = String(req.body.descricao || '').trim();
-      if (descricao.length < 5) return res.status(400).json({ erro: 'Descreva a figurinha com pelo menos 5 caracteres.' });
       if (descricao.length > 1000) return res.status(400).json({ erro: 'Descrição muito longa (máx. 1000 caracteres).' });
 
-      let arquivoReferencia = null;
-      if (req.file) {
-        if (!req.file.mimetype.startsWith('image/')) return res.status(400).json({ erro: 'A referência precisa ser uma imagem.' });
-        const ext = EXTENSOES[req.file.mimetype] || path.extname(req.file.originalname).toLowerCase() || '.img';
-        arquivoReferencia = `${crypto.randomUUID()}${ext}`;
-        await fs.writeFile(path.join(PASTA_ARQUIVOS, arquivoReferencia), req.file.buffer);
+      const arquivos = req.files || [];
+      if (arquivos.length === 0) return res.status(400).json({ erro: 'Envie pelo menos uma imagem ou vídeo.' });
+      for (const arq of arquivos) {
+        if (!arq.mimetype.startsWith('image/') && !arq.mimetype.startsWith('video/')) {
+          return res.status(400).json({ erro: `"${arq.originalname}" não é imagem nem vídeo.` });
+        }
+      }
+      const totalBytes = arquivos.reduce((soma, arq) => soma + arq.size, 0);
+      if (totalBytes > MAX_TOTAL_BYTES) {
+        return res.status(400).json({ erro: 'Os arquivos somam mais de 15 MB. Envie menos ou menores.' });
       }
 
       const quantidade = Math.trunc(Number(req.body.quantidade));
@@ -229,25 +246,35 @@ function criarApp() {
       }
       const valorCentavos = quantidade * PRECO_CENTAVOS;
 
-      const r = db.prepare(`INSERT INTO pedidos (usuario_id, descricao, quantidade, valor_centavos, arquivo_referencia)
+      const r = db.prepare(`INSERT INTO pedidos (usuario_id, nome_figurinha, descricao, quantidade, valor_centavos)
                             VALUES (?, ?, ?, ?, ?)`)
-        .run(req.usuario.id, descricao, quantidade, valorCentavos, arquivoReferencia);
+        .run(req.usuario.id, nomeFigurinha, descricao, quantidade, valorCentavos);
       const id = Number(r.lastInsertRowid);
+
+      const anexos = [];
+      for (const arq of arquivos) {
+        const ext = EXTENSOES[arq.mimetype] || path.extname(arq.originalname).toLowerCase() || '.bin';
+        const nomeDisco = `${crypto.randomUUID()}${ext}`;
+        await fs.writeFile(path.join(PASTA_ARQUIVOS, nomeDisco), arq.buffer);
+        db.prepare(`INSERT INTO pedido_arquivos (pedido_id, arquivo, nome_original, mimetype, tamanho)
+                    VALUES (?, ?, ?, ?, ?)`).run(id, nomeDisco, arq.originalname, arq.mimetype, arq.size);
+        anexos.push({ nome: arq.originalname, buffer: arq.buffer });
+      }
 
       const valor = reais(valorCentavos);
       const texto = [
         `Olá! Quero fazer um pedido de figurinha (pedido #${id}).`,
         `Cliente: ${req.usuario.nome}`,
+        `Nome na figurinha: ${nomeFigurinha}`,
         `Quantidade: ${quantidade}`,
         `Total: ${valor}`,
-        `Descrição: ${descricao}`,
-        arquivoReferencia ? 'Enviei uma imagem de referência pelo site.' : null,
+        descricao ? `Descrição: ${descricao}` : null,
+        `Enviei ${arquivos.length} arquivo(s) pelo site.`,
       ].filter(Boolean).join('\n');
 
-      // Não bloqueia a resposta: se o e-mail falhar, o pedido já está salvo
+      // Não bloqueia a resposta: se o e-mail falhar, o pedido e os arquivos já estão salvos
       enviarPedidoPorEmail({
-        id, cliente: req.usuario, quantidade, valor, descricao,
-        temReferencia: Boolean(arquivoReferencia),
+        id, cliente: req.usuario, quantidade, valor, descricao, nomeFigurinha, anexos,
       }).catch((erro) => console.error('Falha ao enviar e-mail do pedido:', erro.message));
 
       res.status(201).json({
@@ -263,25 +290,31 @@ function criarApp() {
   });
 
   app.get('/api/meus-pedidos', auth.exigirLogin, (req, res) => {
-    res.json(db.prepare(`SELECT id, descricao, quantidade, valor_centavos, arquivo_referencia IS NOT NULL AS tem_referencia, criado_em
-                         FROM pedidos WHERE usuario_id = ? ORDER BY id DESC`).all(req.usuario.id));
+    const pedidos = db.prepare(`SELECT id, nome_figurinha, descricao, quantidade, valor_centavos, criado_em
+                                FROM pedidos WHERE usuario_id = ? ORDER BY id DESC`).all(req.usuario.id);
+    res.json(comArquivos(pedidos));
   });
 
   app.get('/api/admin/pedidos', auth.exigirAdmin, (req, res) => {
-    res.json(db.prepare(`
-      SELECT p.id, p.descricao, p.quantidade, p.valor_centavos, p.arquivo_referencia IS NOT NULL AS tem_referencia, p.criado_em,
+    const pedidos = db.prepare(`
+      SELECT p.id, p.nome_figurinha, p.descricao, p.quantidade, p.valor_centavos, p.criado_em,
              u.nome AS cliente_nome, u.email AS cliente_email
-      FROM pedidos p JOIN usuarios u ON u.id = p.usuario_id ORDER BY p.id DESC`).all());
+      FROM pedidos p JOIN usuarios u ON u.id = p.usuario_id ORDER BY p.id DESC`).all();
+    res.json(comArquivos(pedidos));
   });
 
-  // Imagem de referência: só o cliente que fez o pedido ou o admin
-  app.get('/api/pedidos/:id/referencia', auth.exigirLogin, (req, res) => {
-    const p = db.prepare('SELECT * FROM pedidos WHERE id = ?').get(Number(req.params.id));
-    if (!p || !p.arquivo_referencia) return res.status(404).json({ erro: 'Pedido não encontrado.' });
-    if (req.usuario.papel !== 'admin' && p.usuario_id !== req.usuario.id) {
-      return res.status(404).json({ erro: 'Pedido não encontrado.' });
+  // Arquivo enviado no pedido: só o cliente dono do pedido ou o admin
+  app.get('/api/pedidos/arquivos/:arquivoId', auth.exigirLogin, (req, res) => {
+    const arq = db.prepare(`
+      SELECT a.*, p.usuario_id FROM pedido_arquivos a JOIN pedidos p ON p.id = a.pedido_id WHERE a.id = ?`)
+      .get(Number(req.params.arquivoId));
+    if (!arq) return res.status(404).json({ erro: 'Arquivo não encontrado.' });
+    if (req.usuario.papel !== 'admin' && arq.usuario_id !== req.usuario.id) {
+      return res.status(404).json({ erro: 'Arquivo não encontrado.' });
     }
-    res.sendFile(path.join(PASTA_ARQUIVOS, p.arquivo_referencia));
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(arq.nome_original)}"`);
+    res.type(arq.mimetype);
+    res.sendFile(path.join(PASTA_ARQUIVOS, arq.arquivo));
   });
 
   // ---------- Arquivos (só dono ou admin) ----------

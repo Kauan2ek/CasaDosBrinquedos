@@ -88,7 +88,7 @@ Variáveis opcionais da loja:
 |---|---|---|
 | `PRECO_FIGURINHA_CENTAVOS` | `100` | Preço por figurinha (100 = R$ 1,00) |
 | `PIX_CHAVE` | `nandaacruche@gmail.com` | Chave Pix mostrada ao cliente |
-| `EMAIL_PEDIDOS` | — | E-mail que recebe cada pedido |
+| `EMAIL_PEDIDOS` | — | E-mail que recebe cada pedido, com os arquivos anexados |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASS` | — | Servidor de envio. No Gmail: `smtp.gmail.com`, porta `465`, e uma **senha de app** (não a senha normal) |
 
 Sem as variáveis de e-mail, o pedido é salvo normalmente e aparece no painel, só que o e-mail não é enviado.
@@ -105,11 +105,13 @@ depois disso elas não são mais necessárias.
 ## O que o cliente vê
 
 - As figurinhas em que ele é o dono, com botões para baixar a figurinha e o áudio.
-- **Fazer um pedido:** descreve a figurinha (e pode anexar uma imagem de referência). O pedido fica registrado
+- **Fazer um pedido:** escolhe o nome que vai na figurinha, envia até 5 imagens/vídeos (15 MB no total) e uma observação. O pedido fica registrado
   e o WhatsApp da loja abre com a mensagem pronta. O cliente só precisa apertar enviar.
-- Os próprios pedidos, com link para a imagem de referência.
+- Os próprios pedidos, com os arquivos enviados.
 
-O admin vê todos os pedidos recebidos, com cliente e imagem de referência.
+O admin vê todos os pedidos recebidos, com o nome da figurinha, cliente e arquivos para baixar.
+
+Ao criar a figurinha, o admin pode escrever o nome na parte de baixo (até 30 caracteres). A fonte vem com o projeto, em `fontes/`.
 
 ## Onde ficam os dados
 

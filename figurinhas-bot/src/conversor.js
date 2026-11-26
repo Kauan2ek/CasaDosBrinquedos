@@ -6,6 +6,9 @@ const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
 
+// Fonte incluída no projeto (DejaVu Sans Bold, licença livre), para funcionar em qualquer máquina
+const FONTE_TEXTO = path.join(__dirname, '..', 'fontes', 'DejaVuSans-Bold.ttf');
+
 // Limites do WhatsApp para figurinhas
 const LIMITE_FIGURINHA_ESTATICA = 100 * 1024; // 100 KB
 const LIMITE_FIGURINHA_ANIMADA = 500 * 1024; // 500 KB
@@ -53,7 +56,7 @@ async function salvarEntrada(pasta, buffer, extensao) {
 // Figurinha: 512x512, fundo transparente, proporção mantida.
 // - Imagem estática -> WebP estático (máx. 100 KB)
 // - GIF/vídeo -> WebP animado (máx. 6 s e 500 KB)
-async function criarFigurinha({ buffer, extensao, animada, inicio = 0, duracao }) {
+async function criarFigurinha({ buffer, extensao, animada, inicio = 0, duracao, texto }) {
   const pasta = await criarPastaTemporaria();
   try {
     const entrada = await salvarEntrada(pasta, buffer, extensao);
@@ -63,6 +66,7 @@ async function criarFigurinha({ buffer, extensao, animada, inicio = 0, duracao }
       `scale=${tamanho}:${tamanho}:force_original_aspect_ratio=decrease:flags=lanczos`,
       `pad=${tamanho}:${tamanho}:(ow-iw)/2:(oh-ih)/2:color=0x00000000`,
       'format=rgba',
+      texto ? await filtroTexto(pasta, texto) : null,
     ]
       .filter(Boolean)
       .join(',');
@@ -106,6 +110,20 @@ async function criarFigurinha({ buffer, extensao, animada, inicio = 0, duracao }
   } finally {
     await fs.rm(pasta, { recursive: true, force: true });
   }
+}
+
+// Texto na parte de baixo da figurinha, com contorno para ler em qualquer fundo.
+// O texto vai por arquivo (textfile), o que evita problemas com aspas e acentos no comando.
+async function filtroTexto(pasta, texto) {
+  const limpo = String(texto).replace(/\s+/g, ' ').trim().slice(0, 30);
+  const arquivoTexto = path.join(pasta, 'texto.txt');
+  await fs.writeFile(arquivoTexto, limpo, 'utf8');
+  // Tamanho pelo comprimento: nomes longos diminuem a fonte para caber na figurinha
+  const tamanhoFonte = Math.max(22, Math.min(54, Math.floor(430 / Math.max(limpo.length, 1) / 0.6)));
+  const fonte = FONTE_TEXTO.replace(/\\/g, '/').replace(/:/g, '\\:');
+  const arq = arquivoTexto.replace(/\\/g, '/').replace(/:/g, '\\:');
+  return `drawtext=fontfile='${fonte}':textfile='${arq}':fontsize=${tamanhoFonte}:fontcolor=white:` +
+    'borderw=4:bordercolor=black:x=(w-text_w)/2:y=h-text_h-14';
 }
 
 // Áudio: Opus em .ogg, mono, que é o formato que o WhatsApp reproduz como nota de voz.
