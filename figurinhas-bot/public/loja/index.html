@@ -84,10 +84,13 @@
         <label for="descricao">Como você quer a figurinha?</label>
         <textarea id="descricao" name="descricao" rows="4" required minlength="5" maxlength="1000"
           placeholder="Ex.: figurinha do gato dançando, com a frase 'bom dia!', e o áudio da risada"></textarea>
+        <label for="quantidade">Quantas figurinhas? (R$ 1,00 cada)</label>
+        <input id="quantidade" name="quantidade" type="number" min="1" max="50" step="1" value="1" required />
         <label for="referencia">Imagem de referência (opcional)</label>
         <input id="referencia" name="referencia" type="file" accept="image/*" />
         <button class="bloco" type="submit" id="btnPedido">Enviar pedido pelo WhatsApp</button>
         <div id="msgPedido" class="mensagem"></div>
+        <div id="pagamento" class="card oculto" style="margin-top:12px"></div>
         <p class="dica">Ao enviar, o pedido é registrado e o WhatsApp da loja abre com a mensagem pronta. A imagem de referência fica guardada no seu pedido; se preferir, mande-a também no chat.</p>
       </form>
       <h2 style="margin-top:20px">Meus pedidos</h2>
@@ -202,7 +205,7 @@
   async function carregarMeusPedidos() {
     const lista = await api('/api/meus-pedidos');
     $('listaMeusPedidos').innerHTML = lista.map((p) => `
-      <li>#${p.id} — ${esc(p.descricao)} ${p.tem_referencia ? '<a href="/api/pedidos/' + p.id + '/referencia" target="_blank">(ver referência)</a>' : ''}
+      <li>#${p.id} — ${p.quantidade} figurinha(s) — ${esc(p.descricao)} ${p.tem_referencia ? '<a href="/api/pedidos/' + p.id + '/referencia" target="_blank">(ver referência)</a>' : ''}
           <span class="tag">${esc(p.criado_em)}</span></li>`).join('') || '<li>Você ainda não fez pedidos.</li>';
   }
 
@@ -213,8 +216,18 @@
     msg($('msgPedido'), '');
     try {
       const dados = await api('/api/pedidos', { method: 'POST', body: new FormData($('formPedido')) });
-      // Abre o WhatsApp da loja com a mensagem pronta
-      window.location.href = dados.whatsappUrl;
+      // Mostra como pagar antes de abrir o WhatsApp
+      const pag = $('pagamento');
+      pag.classList.remove('oculto');
+      pag.innerHTML = `
+        <h2>Pedido #${dados.id} registrado</h2>
+        <p>${dados.quantidade} figurinha(s): <strong>${esc(dados.valor)}</strong></p>
+        <p>1. Pague no Pix: <strong>${esc(dados.pix)}</strong></p>
+        <p>2. Envie o comprovante pelo WhatsApp da loja.</p>
+        <a class="botao" href="${esc(dados.whatsappUrl)}">Abrir WhatsApp da loja</a>`;
+      $('formPedido').reset();
+      botao.disabled = false; botao.textContent = 'Enviar pedido pelo WhatsApp';
+      carregarMeusPedidos().catch(() => {});
     } catch (err) {
       msg($('msgPedido'), err.message, 'erro');
       botao.disabled = false; botao.textContent = 'Enviar pedido pelo WhatsApp';
@@ -243,7 +256,7 @@
       <tr>
         <td>${p.id}</td>
         <td>${esc(p.cliente_nome)}<br><span class="tag">${esc(p.cliente_email)}</span></td>
-        <td>${esc(p.descricao)}<br><span class="tag">${esc(p.criado_em)}</span></td>
+        <td>${p.quantidade} figurinha(s) · R$ ${(p.valor_centavos / 100).toFixed(2).replace('.', ',')}<br>${esc(p.descricao)}<br><span class="tag">${esc(p.criado_em)}</span></td>
         <td>${p.tem_referencia ? `<a class="botao" href="/api/pedidos/${p.id}/referencia" target="_blank">Ver imagem</a>` : '—'}</td>
       </tr>`).join('') || '<tr><td colspan="4">Nenhum pedido ainda.</td></tr>';
   }

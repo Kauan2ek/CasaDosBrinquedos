@@ -4,6 +4,7 @@ const path = require('node:path');
 const fs = require('node:fs/promises');
 const crypto = require('node:crypto');
 const express = require('express');
+const { enviarPedidoPorEmail } = require('./email');
 const multer = require('multer');
 const { db, PASTA_ARQUIVOS } = require('./db');
 const auth = require('./auth');
@@ -15,6 +16,11 @@ const EXTENSOES = {
   'audio/mpeg': '.mp3', 'audio/ogg': '.ogg', 'audio/wav': '.wav', 'audio/x-wav': '.wav',
   'audio/mp4': '.m4a', 'audio/x-m4a': '.m4a', 'audio/aac': '.aac', 'audio/webm': '.webm',
 };
+
+// Preço e chave Pix (configuráveis por variável de ambiente)
+const PRECO_CENTAVOS = Number(process.env.PRECO_FIGURINHA_CENTAVOS) || 100;
+const PIX_CHAVE = process.env.PIX_CHAVE || 'nandaacruche@gmail.com';
+const reais = (centavos) => `R$ ${(centavos / 100).toFixed(2).replace('.', ',')}`;
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 30 * 1024 * 1024 } });
 
@@ -217,19 +223,38 @@ function criarApp() {
         await fs.writeFile(path.join(PASTA_ARQUIVOS, arquivoReferencia), req.file.buffer);
       }
 
-      const r = db.prepare('INSERT INTO pedidos (usuario_id, descricao, arquivo_referencia) VALUES (?, ?, ?)')
-        .run(req.usuario.id, descricao, arquivoReferencia);
+      const quantidade = Math.trunc(Number(req.body.quantidade));
+      if (!Number.isFinite(quantidade) || quantidade < 1 || quantidade > 50) {
+        return res.status(400).json({ erro: 'A quantidade precisa ser entre 1 e 50 figurinhas.' });
+      }
+      const valorCentavos = quantidade * PRECO_CENTAVOS;
+
+      const r = db.prepare(`INSERT INTO pedidos (usuario_id, descricao, quantidade, valor_centavos, arquivo_referencia)
+                            VALUES (?, ?, ?, ?, ?)`)
+        .run(req.usuario.id, descricao, quantidade, valorCentavos, arquivoReferencia);
       const id = Number(r.lastInsertRowid);
 
+      const valor = reais(valorCentavos);
       const texto = [
         `Olá! Quero fazer um pedido de figurinha (pedido #${id}).`,
         `Cliente: ${req.usuario.nome}`,
+        `Quantidade: ${quantidade}`,
+        `Total: ${valor}`,
         `Descrição: ${descricao}`,
         arquivoReferencia ? 'Enviei uma imagem de referência pelo site.' : null,
       ].filter(Boolean).join('\n');
 
+      // Não bloqueia a resposta: se o e-mail falhar, o pedido já está salvo
+      enviarPedidoPorEmail({
+        id, cliente: req.usuario, quantidade, valor, descricao,
+        temReferencia: Boolean(arquivoReferencia),
+      }).catch((erro) => console.error('Falha ao enviar e-mail do pedido:', erro.message));
+
       res.status(201).json({
         id,
+        quantidade,
+        valor,
+        pix: PIX_CHAVE,
         whatsappUrl: `https://wa.me/${numeroLoja}?text=${encodeURIComponent(texto)}`,
       });
     } catch (erro) {
@@ -238,13 +263,13 @@ function criarApp() {
   });
 
   app.get('/api/meus-pedidos', auth.exigirLogin, (req, res) => {
-    res.json(db.prepare(`SELECT id, descricao, arquivo_referencia IS NOT NULL AS tem_referencia, criado_em
+    res.json(db.prepare(`SELECT id, descricao, quantidade, valor_centavos, arquivo_referencia IS NOT NULL AS tem_referencia, criado_em
                          FROM pedidos WHERE usuario_id = ? ORDER BY id DESC`).all(req.usuario.id));
   });
 
   app.get('/api/admin/pedidos', auth.exigirAdmin, (req, res) => {
     res.json(db.prepare(`
-      SELECT p.id, p.descricao, p.arquivo_referencia IS NOT NULL AS tem_referencia, p.criado_em,
+      SELECT p.id, p.descricao, p.quantidade, p.valor_centavos, p.arquivo_referencia IS NOT NULL AS tem_referencia, p.criado_em,
              u.nome AS cliente_nome, u.email AS cliente_email
       FROM pedidos p JOIN usuarios u ON u.id = p.usuario_id ORDER BY p.id DESC`).all());
   });

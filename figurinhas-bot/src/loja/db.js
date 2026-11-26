@@ -40,6 +40,8 @@ db.exec(`
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     usuario_id INTEGER NOT NULL REFERENCES usuarios(id) ON DELETE CASCADE,
     descricao TEXT NOT NULL,
+    quantidade INTEGER NOT NULL DEFAULT 1,
+    valor_centavos INTEGER NOT NULL DEFAULT 0,
     arquivo_referencia TEXT,
     criado_em TEXT NOT NULL DEFAULT (datetime('now'))
   );
